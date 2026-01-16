@@ -1,6 +1,6 @@
 import unittest
 
-from library_core import DatabaseManager
+from library_core import DatabaseManager, LibrarySystem
 
 
 class TestLibrarySystem(unittest.TestCase):
@@ -20,3 +20,19 @@ class TestLibrarySystem(unittest.TestCase):
             "SELECT name FROM sqlite_master WHERE type='table' AND name='members';"
         )
         self.assertIsNotNone(res_members)
+
+    def test_add_and_find_book(self):
+        lib = LibrarySystem(self.db)
+        lib.add_book("TDD with Python", "Ola Nordmann", "123-456")
+
+        books = lib.search_books("TDD")
+        self.assertEqual(len(books), 1)
+        self.assertEqual(books[0]["title"], "TDD with Python")
+
+    def test_add_and_find_member(self):
+        lib = LibrarySystem(self.db)
+        lib.add_member("Kari Nordmann", "kari@test.no", "KN001")
+
+        members = lib.search_members("Kari")
+        self.assertEqual(len(members), 1)
+        self.assertEqual(members[0]["email"], "kari@test.no")
