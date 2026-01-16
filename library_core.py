@@ -110,6 +110,44 @@ class LibrarySystem:
         s_term = f"%{term}%"
         return self.db.fetch_all(query, (s_term, s_term))
 
+    def lend_book(self, book_id: int, member_id: int) -> bool:
+        # 1. Check if book is available
+        # Fetch book by ID
+        books = self.db.fetch_all("SELECT * FROM books WHERE id = ?", (book_id,))
+        if not books:
+            return False
+
+        if books[0]["status"] == "unavailable":
+            return False
+
+        # 2. Check if member exist
+        members = self.db.fetch_all("SELECT * FROM members WHERE id = ?", (member_id,))
+        if not members:
+            return False
+
+        # 3. Execute loan (update book status and connect to member)
+        update_query = (
+            "UPDATE books SET status = 'unavailable', borrower_id = ? WHERE id = ?"
+        )
+        self.db.execute_query(update_query, (member_id, book_id))
+        return True
+
+    def return_book(self, book_id: int) -> bool:
+        # 1. Check status of book
+        books = self.db.fetch_all("SELECT * FROM books WHERE id = ?", (book_id,))
+        if not books:
+            return False
+
+        if books[0]["status"] == "available":
+            return False
+
+        # 2. Reset status and delete connection to member
+        update_query = (
+            "UPDATE books SET status = 'available', borrower_id = NULL WHERE id = ?"
+        )
+        self.db.execute_query(update_query, (book_id,))
+        return True
+
 
 class CLI:
     """Handles UI in the terminal (TUI)."""
