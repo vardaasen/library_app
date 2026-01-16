@@ -7,6 +7,7 @@ class DatabaseManager:
 
     def __init__(self, db_name: str = "library.db"):
         self.db_name = db_name
+        self._conn = None
         self._create_tables()
 
     def _get_connection(self) -> sqlite3.Connection:
@@ -51,6 +52,27 @@ class DatabaseManager:
 
 class LibrarySystem:
     """Business logic for library."""
+
+    def __init__(self, db_manager: DatabaseManager):
+        self.db = db_manager
+
+    def add_book(self, title: str, author: str, isbn: str) -> None:
+        query = "INSERT INTO books (title, author, isbn) VALUES (?, ?, ?)"
+        self.db.execute_query(query, (title, author, isbn))
+
+    def add_member(self, name: str, email: str, member_number: str) -> None:
+        query = "INSERT INTO members (name, email, member_number) VALUES (?, ?, ?)"
+        self.db.execute_query(query, (name, email, member_number))
+
+    def search_books(self, term: str) -> List[sqlite3.Row]:
+        query = "SELECT * FROM books WHERE title LIKE ? OR author LIKE ?"
+        s_term = f"%{term}%"
+        return self.db.fetch_all(query, (s_term, s_term))
+
+    def search_members(self, term: str) -> List[sqlite3.Row]:
+        query = "SELECT * FROM members WHERE name LIKE ? OR email LIKE ?"
+        s_term = f"%{term}%"
+        return self.db.fetch_all(query, (s_term, s_term))
 
 
 class CLI:
