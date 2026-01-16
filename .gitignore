@@ -1,0 +1,72 @@
+# macos
+.DS_Store
+.Trashes
+.Spotlight-V100
+
+# windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# --- Linux ---
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+wheels/
+
+# --- Ruff ---
+.ruff_cache/
+
+# --- Test ---
+.pytest_cache/
+
+# --- Build (Setuptools) ---
+build/
+dist/
+*.egg-info/
+
+# --- Documentation ---
+# Sphinx or MkDocs
+site/
+_build/
+
+
+# Virtual environments
+.venv
+.venv/
+venv/
+env/
+
+# local environments
+.env
+.env.local
+.env.*.local
+
+# IDEs
+
+# --- JetBrains (PyCharm & Rider) ---
+.idea/
+*.iml
+*.iws
+modules.xml
+
+# --- Visual Studio & .NET (Rider/VS) ---
+#*.sln #handy
+#*.slnx #same
+bin/
+obj/
+*.suo
+*.userprefs
+*.user
+.vs/
+
+# --- Visual Studio Code ---
+.vscode/

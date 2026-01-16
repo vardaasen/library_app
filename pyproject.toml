@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=75.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "library-app"
+version = "0.1.0"
+description = "A simple library system with SQLite and CLI"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = []
+
+[project-scripts]
+library = "main:main"
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "pre-commit"
+]
+
+[tool.ruff]
+line-length = 88
+target-version = "py314"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "S"]
+ignore = []
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

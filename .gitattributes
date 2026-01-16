@@ -1,0 +1,7 @@
+# all files are text and commit LF
+* text=auto eol=lf
+
+# don't touch these types of files
+*.png binary
+*.jpg binary
+*.ico binary
