@@ -36,3 +36,30 @@ class TestLibrarySystem(unittest.TestCase):
         members = lib.search_members("Kari")
         self.assertEqual(len(members), 1)
         self.assertEqual(members[0]["email"], "kari@test.no")
+
+    def test_lending_process(self):
+        lib = LibrarySystem(self.db)
+        # Setup data
+        lib.add_book("Clean Code", "Uncle Bob", "999")
+        lib.add_member("Per", "per@test.no", "P01")
+
+        # Fetch IDs
+        book_id = lib.search_books("Clean Code")[0]["id"]
+        member_id = lib.search_members("Per")[0]["id"]
+
+        # 1. Test lending
+        success = lib.lend_book(book_id, member_id)
+        self.assertTrue(success)
+
+        # 2. Test if book is marked as unavailable
+        book_after = lib.search_books("Clean Code")[0]
+        self.assertEqual(book_after["status"], "unavailable")
+
+        # 3. Test lending of unavailable book
+        success_fail = lib.lend_book(book_id, member_id)
+        self.assertFalse(success_fail)
+
+        # 4. Test return book
+        lib.return_book(book_id)
+        book_final = lib.search_books("Clean Code")[0]
+        self.assertEqual(book_final["status"], "available")
