@@ -33,3 +33,6 @@ quote-style = "double"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.setuptools]
+py-modules = ["library_core", "main"]
