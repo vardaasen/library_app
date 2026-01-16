@@ -8,9 +8,16 @@ class DatabaseManager:
     def __init__(self, db_name: str = "library.db"):
         self.db_name = db_name
         self._conn = None
+
+        if self.db_name == ":memory:":
+            self._conn = sqlite3.connect(":memory:")
+            self._conn.row_factory = sqlite3.Row
+
         self._create_tables()
 
     def _get_connection(self) -> sqlite3.Connection:
+        if self._conn:
+            return self._conn
         conn = sqlite3.connect(self.db_name)
         conn.row_factory = sqlite3.Row
         return conn
@@ -35,19 +42,48 @@ class DatabaseManager:
                 FOREIGN KEY(borrower_id) REFERENCES members(id)
             );
         """
-        with self._get_connection() as conn:
-            conn.execute(schema_members)
-            conn.execute(schema_books)
+        conn = self._get_connection()
+        conn.execute(schema_members)
+        conn.execute(schema_books)
+        conn.commit()
+
+        if self.db_name != ":memory:":
+            conn.commit()
+            conn.close()
+        else:
+            conn.commit()
 
     def execute_query(self, query: str, params: Tuple[Any, ...] = ()) -> Optional[int]:
-        with self._get_connection() as conn:
-            cursor = conn.execute(query, params)
-            return cursor.lastrowid
+        try:
+            conn = self._get_connection()
+            if self.db_name == ":memory:":
+                cursor = conn.execute(query, params)
+                conn.commit()
+                return cursor.lastrowid
+            else:
+                with conn:
+                    cursor = conn.execute(query, params)
+                    return cursor.lastrowid
+        except sqlite3.IntegrityError as e:
+            print(f"Database error (Integrity): {e}")
+            return None
+        except sqlite3.Error as e:
+            print(f"Generic database error: {e}")
+            return None
 
     def fetch_all(self, query: str, params: Tuple[Any, ...] = ()) -> List[sqlite3.Row]:
-        with self._get_connection() as conn:
-            cursor = conn.execute(query, params)
-            return cursor.fetchall()
+        conn = self._get_connection()
+        cursor = conn.execute(query, params)
+        res = cursor.fetchall()
+        if self.db_name != ":memory:":
+            conn.close()
+        return res
+
+    def close(self):
+        """Cleanup"""
+        if self._conn:
+            self._conn.close()
+            self._conn = None
 
 
 class LibrarySystem:
