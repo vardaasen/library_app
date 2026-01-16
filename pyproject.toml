@@ -32,7 +32,7 @@ ignore = []
 quote-style = "double"
 
 [tool.pytest.ini_options]
-testpaths = ["tests"]
+testpaths = ["."]
 
 [tool.setuptools]
 py-modules = ["library_core", "main"]
