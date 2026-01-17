@@ -111,6 +111,24 @@ class LibrarySystem:
         s_term = f"%{term}%"
         return self.db.fetch_all(query, (s_term, s_term))
 
+    def get_member_id_by_number(self, identifier: str) -> Optional[int]:
+        """Helper: Resolves a member_number string (FIR001) to an internal ID (1)."""
+        # Feature missing in smoke test if member name is "First Man"
+        # First, try to see if the input is already a pure integer ID
+        if identifier.isdigit():
+            # Check if this ID actually exists
+            res = self.db.fetch_all(
+                "SELECT id FROM members WHERE id = ?", (int(identifier),)
+            )
+            if res:
+                return res[0]["id"]
+
+        # If not (or if it wasn't found as ID), look for member_number string
+        res = self.db.fetch_all(
+            "SELECT id FROM members WHERE member_number = ?", (identifier,)
+        )
+        return res[0]["id"] if res else None
+
     def lend_book(self, book_id: int, member_id: int) -> bool:
         # 1. Check if book is available
         # Fetch book by ID
@@ -211,18 +229,28 @@ class CLI:
                 results = self.library.search_members(term)
                 print(f"\nFound {len(results)} members:")
                 for m in results:
-                    print(f"[ID: {m['id']}] {m['name']} ({m['email']})")
+                    print(
+                        f"[System ID: {m['id']}] Member#: {m['member_number']} "
+                        f"- {m['name']} ({m['email']})"
+                    )
 
             elif choice == "5":
                 try:
                     b_id = int(input("Book ID: "))
-                    m_id = int(input("Member ID: "))
-                    if self.library.lend_book(b_id, m_id):
-                        print("Book lent successfully.")
+                    # Smoke Test FIX: Allow user to type "FIR001" OR "1"
+                    m_input = input("Member ID (System ID or Number): ")
+                    # Resolve input to internal ID
+                    resolved_id = self.library.get_member_id_by_number(m_input)
+                    if resolved_id:
+                        if self.library.lend_book(b_id, resolved_id):
+                            print("Book lent successfully.")
+                        else:
+                            print("Error: Could not lend book (already lent).")
                     else:
-                        print("Error: Could not lend book (already lent/invalid ID).")
+                        print("Error: Member not found.")
+
                 except ValueError:
-                    print("Error: ID must be a number.")
+                    print("Error: Book ID must be a number.")
 
             elif choice == "6":
                 try:
