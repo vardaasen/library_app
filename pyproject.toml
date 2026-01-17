@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.14"
 dependencies = []
 
-[project-scripts]
+[project.scripts]
 library = "main:main"
 
 [project.optional-dependencies]

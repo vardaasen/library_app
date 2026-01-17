@@ -1,4 +1,5 @@
 import sqlite3
+import sys
 from typing import Any, List, Optional, Tuple
 
 
@@ -37,7 +38,7 @@ class DatabaseManager:
                 title TEXT NOT NULL,
                 author TEXT NOT NULL,
                 isbn TEXT UNIQUE,
-                status TEXT DEFAULT 'ledig',
+                status TEXT DEFAULT 'available',
                 borrower_id INTEGER,
                 FOREIGN KEY(borrower_id) REFERENCES members(id)
             );
@@ -151,3 +152,92 @@ class LibrarySystem:
 
 class CLI:
     """Handles UI in the terminal (TUI)."""
+
+    def __init__(self):
+        self.db = DatabaseManager()
+        self.library = LibrarySystem(self.db)
+
+    def display_menu(self):
+        print("\n" + "=" * 30)
+        print("   LIBRARY SYSTEM v1.0")
+        print("=" * 30)
+        print("1. Register new book")
+        print("2. Register new member")
+        print("3. Search for book")
+        print("4. Search for member")
+        print("5. Lend book")
+        print("6. Return book")
+        print("7. Exit")
+        print("-" * 30)
+
+    def run(self):
+        while True:
+            self.display_menu()
+            choice = input("Select option (1-7): ").strip()
+
+            if choice == "1":
+                title = input("Title: ")
+                author = input("Author: ")
+                isbn = input("ISBN: ")
+                if title and author:
+                    self.library.add_book(title, author, isbn)
+                    print("Book registered.")
+                else:
+                    print("Error: Title and author are required.")
+
+            elif choice == "2":
+                name = input("Name: ")
+                email = input("Email: ")
+                # Generate default ID if left blank
+                default_id = name[:3].upper() + "001" if name else "NEW001"
+                member_num = input(f"Member ID (default {default_id}): ") or default_id
+
+                self.library.add_member(name, email, member_num)
+                print("Member registered.")
+
+            elif choice == "3":
+                term = input("Search (title/author): ")
+                results = self.library.search_books(term)
+                print(f"\nFound {len(results)} books:")
+                for b in results:
+                    if b["status"] == "unavailable":
+                        status = f"ON LOAN (MemberID: {b['borrower_id']})"
+                    else:
+                        status = "AVAILABLE"
+                    print(f"[ID: {b['id']}] {b['title']} - {b['author']} [{status}]")
+
+            elif choice == "4":
+                term = input("Search (name/email): ")
+                results = self.library.search_members(term)
+                print(f"\nFound {len(results)} members:")
+                for m in results:
+                    print(f"[ID: {m['id']}] {m['name']} ({m['email']})")
+
+            elif choice == "5":
+                try:
+                    b_id = int(input("Book ID: "))
+                    m_id = int(input("Member ID: "))
+                    if self.library.lend_book(b_id, m_id):
+                        print("Book lent successfully.")
+                    else:
+                        print("Error: Could not lend book (already lent/invalid ID).")
+                except ValueError:
+                    print("Error: ID must be a number.")
+
+            elif choice == "6":
+                try:
+                    b_id = int(input("Book ID to return: "))
+                    if self.library.return_book(b_id):
+                        print("Book returned successfully.")
+                    else:
+                        print(
+                            "Error: Could not return book (already available/invalid)."
+                        )
+                except ValueError:
+                    print("Error: ID must be a number.")
+
+            elif choice == "7":
+                print("Saving and exiting...")
+                sys.exit()
+            else:
+                print("Invalid choice, please try again.")

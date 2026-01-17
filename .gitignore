@@ -22,6 +22,9 @@ __pycache__/
 .Python
 wheels/
 
+# --- Database ---
+*.db
+
 # --- Ruff ---
 .ruff_cache/
 
